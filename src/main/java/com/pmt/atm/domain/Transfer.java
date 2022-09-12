@@ -13,4 +13,6 @@ public abstract class Transfer extends Transaction {
         return receiverAccount;
     }
 
+    public abstract Toman getDailyTransferLimitAmount();
+
 }

@@ -2,11 +2,9 @@ package com.pmt.atm.domain;
 
 import com.pmt.atm.infra.persistence.attributeConverter.TomanAttributeConverter;
 
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -25,6 +23,9 @@ public abstract class Transaction {
     @Column(name = "failure_reason")
     private TransactionFailureReason failureReason;
 
+    @ManyToOne
+    private Account senderAccount;
+
     @Column(name = "created_at")
     private final LocalDateTime createdAt;
 
@@ -40,7 +41,7 @@ public abstract class Transaction {
         this.lastModifiedAt = LocalDateTime.now();
     }
 
-    public Transaction() {
+    protected Transaction() {
         this.id = UUID.randomUUID().toString();
         this.amount = Toman.createZero();
         this.createdAt = LocalDateTime.now();
@@ -75,6 +76,10 @@ public abstract class Transaction {
 
     public TransactionFailureReason getFailureReason() {
         return failureReason;
+    }
+
+    public Account getSenderAccount() {
+        return this.senderAccount;
     }
 
     public LocalDateTime getCreatedAt() {

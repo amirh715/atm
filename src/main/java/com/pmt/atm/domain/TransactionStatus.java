@@ -4,6 +4,14 @@ public enum TransactionStatus {
 
     CREATED,
     FAILED,
-    SUCCEEDED,
+    SUCCEEDED;
+
+    public boolean isSuccessful() {
+        return this.equals(TransactionStatus.SUCCEEDED);
+    }
+
+    public boolean isFailed() {
+        return !isSuccessful();
+    }
 
 }
