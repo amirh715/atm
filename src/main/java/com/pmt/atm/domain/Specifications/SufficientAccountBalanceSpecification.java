@@ -1,4 +1,4 @@
-package com.pmt.atm.domain.specifications;
+package com.pmt.atm.domain.Specifications;
 
 import com.pmt.atm.domain.Toman;
 import com.pmt.atm.domain.Transaction;

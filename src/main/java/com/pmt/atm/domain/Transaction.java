@@ -1,13 +1,12 @@
 package com.pmt.atm.domain;
 
 import com.pmt.atm.infra.persistence.attributeConverter.TomanAttributeConverter;
-
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Set;
 import java.util.UUID;
 
-@Entity
+@Entity(name = "transactions")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public abstract class Transaction {
 
     @Id
@@ -72,6 +71,18 @@ public abstract class Transaction {
 
     public TransactionStatus getStatus() {
         return status;
+    }
+
+    public boolean isSuccessful() {
+        return status.isSuccessful();
+    }
+
+    public boolean isFailed() {
+        return status.isFailed();
+    }
+
+    public boolean isUndone() {
+        return status.isCreated();
     }
 
     public TransactionFailureReason getFailureReason() {

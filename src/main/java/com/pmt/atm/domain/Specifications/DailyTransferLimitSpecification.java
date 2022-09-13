@@ -1,4 +1,4 @@
-package com.pmt.atm.domain.specifications;
+package com.pmt.atm.domain.Specifications;
 
 import com.pmt.atm.domain.*;
 import com.pmt.atm.utils.specification.AbstractSpecification;
@@ -13,7 +13,7 @@ public class DailyTransferLimitSpecification extends AbstractSpecification<Trans
     public DailyTransferLimitSpecification(Set<Transfer> todaysTransfers) {
         this.todaysSuccessfulTransfers = todaysTransfers
                 .stream().filter(transfer -> transfer.getCreatedAt().toLocalDate().isEqual(LocalDate.now()))
-                .filter(transfer -> transfer.getStatus().isSuccessful())
+                .filter(Transfer::isSuccessful)
                 .collect(Collectors.toSet());
     }
 
@@ -27,7 +27,7 @@ public class DailyTransferLimitSpecification extends AbstractSpecification<Trans
 
     private final Toman totalAmountOfTodaysSuccessfulTransfers() {
         return todaysSuccessfulTransfers
-                .stream().filter(transfer -> transfer.getStatus().isSuccessful())
+                .stream().filter(Transfer::isSuccessful)
                 .map(Transaction::getAmount)
                 .reduce(Toman.createZero(), (subTotal, amount) -> subTotal.plus(amount));
     }

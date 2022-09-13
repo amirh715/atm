@@ -17,7 +17,7 @@ public interface TransactionRepository extends CrudRepository<Transaction, Strin
     )
     public List<Transaction> getTheLastTenSuccessfulTransactionsOfAccount(String accountId);
 
-    @Query(value = "", nativeQuery = true)
-    public Toman getAverageTransactionAmountOfAllCustomersInThePastYear();
+//    @Query(value = "", nativeQuery = true)
+//    public Toman getAverageTransactionAmountOfAllCustomersInThePastYear();
 
 }

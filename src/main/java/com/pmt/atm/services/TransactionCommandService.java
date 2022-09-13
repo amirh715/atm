@@ -14,6 +14,9 @@ public class TransactionCommandService {
     @Autowired
     private AccountRepository accountRepository;
 
+    @Autowired
+    private CustomerProxyService customerProxyService;
+
     public void deposit(String accountId, Toman depositAmount) {
 
         final Account account = accountRepository.findById(accountId).orElseThrow();

@@ -1,8 +1,9 @@
 package com.pmt.atm.domain;
 
+import com.pmt.atm.domain.exceptions.AccountIsNotAuthorizedForTransferException;
 import com.pmt.atm.domain.exceptions.InsufficientCreditForWithdrawalException;
-import com.pmt.atm.domain.specifications.DailyTransferLimitSpecification;
-import com.pmt.atm.domain.specifications.SufficientAccountBalanceSpecification;
+import com.pmt.atm.domain.Specifications.DailyTransferLimitSpecification;
+import com.pmt.atm.domain.Specifications.SufficientAccountBalanceSpecification;
 import com.pmt.atm.infra.persistence.attributeConverter.AccountNumberAttributeConverter;
 import com.pmt.atm.infra.persistence.attributeConverter.TomanAttributeConverter;
 import com.pmt.atm.utils.specification.AndSpecification;
@@ -69,6 +70,10 @@ public class Account {
                 .isSatisfiedBy(transfer);
     }
 
+    public boolean isNotAuthorizedForTransfer(Transfer transfer) {
+        return !isAuthorizedForTransfer(transfer);
+    }
+
     private boolean hasSufficientBalance(Transaction transaction) {
         return new SufficientAccountBalanceSpecification(currentBalance).isSatisfiedBy(transaction);
     }
@@ -77,17 +82,26 @@ public class Account {
         return !hasSufficientBalance(transaction);
     }
 
-    public void deposit(Transaction transaction) {
+    public void deposit(Deposit aDeposit) {
         currentBalance = currentBalance
-                .plus(transaction.getAmount());
-        transactions.add(transaction);
+                .plus(aDeposit.getAmount());
+        transactions.add(aDeposit);
         modified();
     }
 
-    public void withdraw(Transaction transaction) {
-        if(doesNotHaveSufficientBalance(transaction)) throw new InsufficientCreditForWithdrawalException();
-        currentBalance = currentBalance.minus(transaction.getAmount());
-        transactions.add(transaction);
+    public void withdraw(Withdraw aWithdraw) {
+        if(doesNotHaveSufficientBalance(aWithdraw)) throw new InsufficientCreditForWithdrawalException();
+        currentBalance = currentBalance.minus(aWithdraw.getAmount());
+        transactions.add(aWithdraw);
+        modified();
+    }
+
+    // TODO: decide on how you want to represent a transfer (one transaction or two separate transactions)
+    public void makeTransfer(Transfer aTransfer) {
+        if(isNotAuthorizedForTransfer(aTransfer)) throw new AccountIsNotAuthorizedForTransferException();
+        final Withdraw aWithdraw = aTransfer.buildSenderWithdraw();
+        withdraw(aWithdraw);
+        transactions.add(aTransfer);
         modified();
     }
 
@@ -115,7 +129,7 @@ public class Account {
         return lastModifiedAt;
     }
 
-    public String getAccountHolderId() {
+    public String getCustomerId() {
         return customerId;
     }
 
@@ -130,7 +144,7 @@ public class Account {
     public Set<Transaction> getAllOfTodaysSuccessfulTransactions() {
         return transactions
                 .stream().filter(transaction -> transaction.getCreatedAt().toLocalDate().equals(LocalDate.now()))
-                .filter(transaction -> transaction.getStatus().isSuccessful())
+                .filter(Transaction::isSuccessful)
                 .collect(Collectors.toSet());
     }
 
@@ -139,7 +153,7 @@ public class Account {
                 .stream().filter(transaction -> transaction instanceof Transfer)
                 .map(transaction -> (Transfer) transaction)
                 .filter(transaction -> transaction.getCreatedAt().toLocalDate().equals(LocalDate.now()))
-                .filter(transfer -> transfer.getStatus().isSuccessful())
+                .filter(Transfer::isSuccessful)
                 .collect(Collectors.toSet());
     }
 

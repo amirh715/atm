@@ -1,5 +1,6 @@
 package com.pmt.atm.domain;
 
+import javax.xml.bind.ValidationException;
 import java.util.Random;
 
 public class AccountNumber {
@@ -13,8 +14,18 @@ public class AccountNumber {
         this.value = value;
     }
 
-    public static AccountNumber create(int value) {
+    public static AccountNumber create(int value) throws ValidationException {
+        if(value < MIN || value > MAX)
+            throw new ValidationException("Account number must be between " + MIN + " and " + MAX);
         return new AccountNumber(value);
+    }
+
+    public static AccountNumber create(String value) throws ValidationException {
+        try {
+            return create(Integer.parseInt(value));
+        } catch(NumberFormatException exception) {
+            throw new ValidationException("Account number must be a positive integer.");
+        }
     }
 
     public static AccountNumber createNew() {

@@ -1,0 +1,22 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: account-service
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/account_db
+    username: root
+    password: 123456
+  jpa:
+    hibernate:
+      ddl-auto: update
+eureka:
+  client:
+  serviceUrl:
+    defaultZone: http://localhost:8761/eureka
+  instance:
+    preferIpAddress: true
+domain:
+  jwt:
+    secret: mysecret

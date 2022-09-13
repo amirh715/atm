@@ -15,4 +15,12 @@ public abstract class Transfer extends Transaction {
 
     public abstract Toman getDailyTransferLimitAmount();
 
+    public Withdraw buildSenderWithdraw() {
+        return new Withdraw(getAmount());
+    }
+
+    public Deposit buildReceiverDeposit() {
+        return new Deposit(getAmount());
+    }
+
 }

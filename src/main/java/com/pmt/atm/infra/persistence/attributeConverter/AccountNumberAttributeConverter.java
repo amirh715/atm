@@ -2,6 +2,7 @@ package com.pmt.atm.infra.persistence.attributeConverter;
 
 import com.pmt.atm.domain.AccountNumber;
 import javax.persistence.AttributeConverter;
+import javax.xml.bind.ValidationException;
 
 public class AccountNumberAttributeConverter implements AttributeConverter<AccountNumber, Integer> {
 
@@ -12,7 +13,11 @@ public class AccountNumberAttributeConverter implements AttributeConverter<Accou
 
     @Override
     public AccountNumber convertToEntityAttribute(Integer accountNumber) {
-        return AccountNumber.create(accountNumber);
+        try {
+            return AccountNumber.create(accountNumber);
+        } catch (ValidationException e) {
+            return null;
+        }
     }
 
 }

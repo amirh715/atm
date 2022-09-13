@@ -1,9 +1,16 @@
 package com.pmt.atm.domain;
 
+import javax.persistence.Entity;
+
+@Entity
 public class DirectTransfer extends Transfer {
 
-    protected DirectTransfer(Account receiverAccount, Toman amountToTransfer) {
+    public DirectTransfer(Account receiverAccount, Toman amountToTransfer) {
         super(receiverAccount, amountToTransfer);
+    }
+
+    public DirectTransfer() {
+        super(null, null);
     }
 
     @Override
