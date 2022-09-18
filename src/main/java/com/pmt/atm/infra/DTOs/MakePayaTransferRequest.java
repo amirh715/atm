@@ -6,13 +6,13 @@ public class MakePayaTransferRequest {
 
     private final String receiverAccountNumber;
 
-    private final String transferAmount;
+    private final String amountInTomans;
 
 
     public MakePayaTransferRequest(String senderAccountNumber, String receiverAccountNumber, String transferAmount) {
         this.senderAccountNumber = senderAccountNumber;
         this.receiverAccountNumber = receiverAccountNumber;
-        this.transferAmount = transferAmount;
+        this.amountInTomans = transferAmount;
     }
 
     public String getSenderAccountNumber() {
@@ -23,8 +23,8 @@ public class MakePayaTransferRequest {
         return this.receiverAccountNumber;
     }
 
-    public String getTransferAmount() {
-        return this.transferAmount;
+    public String getAmountInTomans() {
+        return this.amountInTomans;
     }
 
 }

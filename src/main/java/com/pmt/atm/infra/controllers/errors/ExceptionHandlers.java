@@ -43,7 +43,19 @@ public class ExceptionHandlers {
     @ExceptionHandler(InterServiceCommunicationException.class)
     public ResponseEntity<ApiError> handle(InterServiceCommunicationException exception) {
         final ApiError errorDTO = new ApiError(exception);
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorDTO);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorDTO);
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ApiError> handle(BusinessException exception) {
+        final ApiError errorDTO = new ApiError(exception);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorDTO);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiError> handle(RuntimeException exception) {
+        final ApiError errorDTO = new ApiError(exception);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorDTO);
     }
 
 }

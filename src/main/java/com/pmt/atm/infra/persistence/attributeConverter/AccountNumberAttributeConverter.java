@@ -4,15 +4,15 @@ import com.pmt.atm.domain.AccountNumber;
 import javax.persistence.AttributeConverter;
 import javax.xml.bind.ValidationException;
 
-public class AccountNumberAttributeConverter implements AttributeConverter<AccountNumber, Integer> {
+public class AccountNumberAttributeConverter implements AttributeConverter<AccountNumber, String> {
 
     @Override
-    public Integer convertToDatabaseColumn(AccountNumber accountNumber) {
+    public String convertToDatabaseColumn(AccountNumber accountNumber) {
         return accountNumber.getValue();
     }
 
     @Override
-    public AccountNumber convertToEntityAttribute(Integer accountNumber) {
+    public AccountNumber convertToEntityAttribute(String accountNumber) {
         try {
             return AccountNumber.create(accountNumber);
         } catch (ValidationException e) {

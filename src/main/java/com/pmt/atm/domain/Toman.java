@@ -61,7 +61,7 @@ public class Toman {
 
     public static Toman create(String value) {
         try {
-            return create(value);
+            return create(Integer.parseInt(value));
         } catch(NumberFormatException e) {
             throw new ValidationException("Value must be a valid positive integer.");
         }

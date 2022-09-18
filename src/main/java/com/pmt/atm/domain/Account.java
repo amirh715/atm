@@ -11,6 +11,7 @@ import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -23,7 +24,7 @@ public class Account {
 
     @Column(name = "account_number", unique = true)
     @Convert(converter = AccountNumberAttributeConverter.class)
-    private AccountNumber accountNumber;
+    private final AccountNumber accountNumber;
 
     @Column(name = "current_balance_in_tomans")
     @Convert(converter = TomanAttributeConverter.class)
@@ -41,7 +42,8 @@ public class Account {
     @Enumerated
     private final CustomerType customerType;
 
-    @OneToMany
+    // TODO: refactor for receiver
+    @OneToMany(mappedBy = "initiatorAccount", cascade = CascadeType.ALL)
     private final Set<Transaction> transactions = new HashSet<>();
 
     public Account(
@@ -51,6 +53,7 @@ public class Account {
         this.customerId = customerId;
         this.currentBalance = Toman.createZero();
         this.createdAt = LocalDateTime.now();
+        this.accountNumber = AccountNumber.createNew();
         this.customerType = null;
     }
 
@@ -58,6 +61,7 @@ public class Account {
         this.id = UUID.randomUUID().toString();
         this.customerId = null;
         this.createdAt = LocalDateTime.now();
+        this.accountNumber = null;
         this.customerType = null;
     }
 
@@ -66,6 +70,7 @@ public class Account {
                 new SufficientAccountBalanceSpecification(currentBalance);
         final DailyTransferLimitSpecification dailyTransferLimitSpecification =
                 new DailyTransferLimitSpecification(getAllOfTodaysSuccessfulTransfers());
+        System.out.println("isAuthorizedForTransfer:: " + sufficientAccountBalanceSpecification.isSatisfiedBy(transfer) + " - " + dailyTransferLimitSpecification.isSatisfiedBy(transfer));
         return new AndSpecification(sufficientAccountBalanceSpecification, dailyTransferLimitSpecification)
                 .isSatisfiedBy(transfer);
     }
@@ -85,22 +90,38 @@ public class Account {
     public void deposit(Deposit aDeposit) {
         currentBalance = currentBalance
                 .plus(aDeposit.getAmount());
+//        deposits.add(aDeposit);
         transactions.add(aDeposit);
+        aDeposit.setInitiatorAccount(this);
+        aDeposit.markTransactionAsSucceeded();
+        modified();
+    }
+
+    public void deposit(Transfer aTransfer) {
+        if(!aTransfer.getReceiverAccount().equals(this)) throw new RuntimeException("1111");
+        currentBalance = currentBalance
+                .plus(aTransfer.getAmount());
+//        initiatedTransfers.add(aTransfer);
+        transactions.add(aTransfer);
         modified();
     }
 
     public void withdraw(Withdraw aWithdraw) {
         if(doesNotHaveSufficientBalance(aWithdraw)) throw new InsufficientCreditForWithdrawalException();
         currentBalance = currentBalance.minus(aWithdraw.getAmount());
+//        withdraws.add(aWithdraw);
         transactions.add(aWithdraw);
+        aWithdraw.setInitiatorAccount(this);
+        aWithdraw.markTransactionAsSucceeded();
         modified();
     }
 
-    // TODO: decide on how you want to represent a transfer (one transaction or two separate transactions)
-    public void makeTransfer(Transfer aTransfer) {
+    public void withdraw(Transfer aTransfer) {
+        aTransfer.setInitiatorAccount(this);
+        if(!aTransfer.getInitiatorAccount().equals(this)) throw new RuntimeException();
         if(isNotAuthorizedForTransfer(aTransfer)) throw new AccountIsNotAuthorizedForTransferException();
-        final Withdraw aWithdraw = aTransfer.buildSenderWithdraw();
-        withdraw(aWithdraw);
+        currentBalance = currentBalance.minus(aTransfer.getAmount());
+//        receivedTransfers.add(aTransfer);
         transactions.add(aTransfer);
         modified();
     }
@@ -137,11 +158,17 @@ public class Account {
         return customerType;
     }
 
-    public Set<Transaction> getAllTransactions() {
-        return transactions;
-    }
+//    public Set<Transaction> getAllTransactions() {
+//        final Set<Transaction> allTransactions = new HashSet<>();
+//        allTransactions.addAll(deposits);
+//        allTransactions.addAll(withdraws);
+//        allTransactions.addAll(initiatedTransfers);
+//        allTransactions.addAll(receivedTransfers);
+//        return allTransactions;
+//    }
 
     public Set<Transaction> getAllOfTodaysSuccessfulTransactions() {
+//        return getAllTransactions()
         return transactions
                 .stream().filter(transaction -> transaction.getCreatedAt().toLocalDate().equals(LocalDate.now()))
                 .filter(Transaction::isSuccessful)
@@ -149,12 +176,26 @@ public class Account {
     }
 
     public Set<Transfer> getAllOfTodaysSuccessfulTransfers() {
+//        return getAllTransactions()
         return transactions
                 .stream().filter(transaction -> transaction instanceof Transfer)
                 .map(transaction -> (Transfer) transaction)
                 .filter(transaction -> transaction.getCreatedAt().toLocalDate().equals(LocalDate.now()))
                 .filter(Transfer::isSuccessful)
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Account account = (Account) o;
+        return id.equals(account.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
 }

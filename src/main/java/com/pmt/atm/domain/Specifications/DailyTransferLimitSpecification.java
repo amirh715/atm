@@ -19,10 +19,10 @@ public class DailyTransferLimitSpecification extends AbstractSpecification<Trans
 
     @Override
     public boolean isSatisfiedBy(Transfer transfer) {
-        final CustomerType customerType = transfer.getSenderAccount().getCustomerType();
+        final CustomerType customerType = transfer.getInitiatorAccount().getCustomerType();
         return
                 totalAmountOfTodaysSuccessfulTransfers().plus(transfer.getAmount())
-                        .isMoreThan(transfer.getDailyTransferLimitAmount());
+                        .isLessThan(transfer.getDailyTransferLimitAmount());
     }
 
     private final Toman totalAmountOfTodaysSuccessfulTransfers() {

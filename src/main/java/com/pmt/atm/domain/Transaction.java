@@ -7,6 +7,7 @@ import java.util.UUID;
 
 @Entity(name = "transactions")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "transaction_type", discriminatorType = DiscriminatorType.STRING)
 public abstract class Transaction {
 
     @Id
@@ -23,7 +24,8 @@ public abstract class Transaction {
     private TransactionFailureReason failureReason;
 
     @ManyToOne
-    private Account senderAccount;
+    @JoinColumn(name = "initiator_account_id")
+    private Account initiatorAccount;
 
     @Column(name = "created_at")
     private final LocalDateTime createdAt;
@@ -38,12 +40,14 @@ public abstract class Transaction {
         this.amount = amount;
         this.createdAt = LocalDateTime.now();
         this.lastModifiedAt = LocalDateTime.now();
+        this.status = TransactionStatus.CREATED;
     }
 
     protected Transaction() {
         this.id = UUID.randomUUID().toString();
         this.amount = Toman.createZero();
         this.createdAt = LocalDateTime.now();
+        this.status = TransactionStatus.CREATED;
     }
 
     public void markTransactionAsSucceeded() {
@@ -55,6 +59,10 @@ public abstract class Transaction {
         this.failureReason = failureReason;
         status = TransactionStatus.FAILED;
         modified();
+    }
+
+    public void setInitiatorAccount(Account initiatorAccount) {
+        this.initiatorAccount = initiatorAccount;
     }
 
     private void modified() {
@@ -89,8 +97,8 @@ public abstract class Transaction {
         return failureReason;
     }
 
-    public Account getSenderAccount() {
-        return this.senderAccount;
+    public Account getInitiatorAccount() {
+        return this.initiatorAccount;
     }
 
     public LocalDateTime getCreatedAt() {

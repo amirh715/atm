@@ -12,4 +12,8 @@ public class InterServiceCommunicationException extends RuntimeException {
         super(exception.getMessage());
     }
 
+    public InterServiceCommunicationException(String message) {
+        super(message);
+    }
+
 }

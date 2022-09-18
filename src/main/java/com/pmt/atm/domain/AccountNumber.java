@@ -8,16 +8,16 @@ public class AccountNumber {
     private static final int MIN = 10000000;
     private static final int MAX = 99999999;
 
-    private final int value;
+    private final String value;
 
-    private AccountNumber(int value) {
+    private AccountNumber(String value) {
         this.value = value;
     }
 
     public static AccountNumber create(int value) throws ValidationException {
         if(value < MIN || value > MAX)
             throw new ValidationException("Account number must be between " + MIN + " and " + MAX);
-        return new AccountNumber(value);
+        return new AccountNumber(String.valueOf(value));
     }
 
     public static AccountNumber create(String value) throws ValidationException {
@@ -29,10 +29,10 @@ public class AccountNumber {
     }
 
     public static AccountNumber createNew() {
-        return new AccountNumber(generateRandomNumber());
+        return new AccountNumber(String.valueOf(generateRandomNumber()));
     }
 
-    public int getValue() {
+    public String getValue() {
         return value;
     }
 

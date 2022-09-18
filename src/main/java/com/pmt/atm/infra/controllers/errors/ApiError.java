@@ -26,10 +26,12 @@ public class ApiError {
     }
 
     public ApiError(RuntimeException exception) {
-        this.code = "Unknown_Exception";
+        this.code = "Unknown_Error";
         this.message = FAILOVER_MESSAGE;
         this.description = FAILOVER_DESCRIPTION;
         this.timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+        //  TODO: remove
+        exception.printStackTrace();
     }
 
     public String getCode() {

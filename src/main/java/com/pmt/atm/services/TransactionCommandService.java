@@ -3,7 +3,6 @@ package com.pmt.atm.services;
 import com.pmt.atm.domain.*;
 import com.pmt.atm.domain.exceptions.AccountDoesNotExistException;
 import com.pmt.atm.infra.persistence.repositories.AccountRepository;
-import com.pmt.atm.infra.persistence.repositories.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;

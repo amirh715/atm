@@ -1,11 +1,25 @@
 package com.pmt.atm.domain;
 
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+
+@Entity
 public abstract class Transfer extends Transaction {
 
-    private final Account receiverAccount;
+    @ManyToOne
+    @JoinColumn(name = "receiver_account_id")
+    private Account receiverAccount;
 
     protected Transfer(Account receiverAccount, Toman amountToTransfer) {
         super(amountToTransfer);
+        this.receiverAccount = receiverAccount;
+    }
+
+    public Transfer() {
+    }
+
+    public void setReceiverAccount(Account receiverAccount) {
         this.receiverAccount = receiverAccount;
     }
 
@@ -14,13 +28,5 @@ public abstract class Transfer extends Transaction {
     }
 
     public abstract Toman getDailyTransferLimitAmount();
-
-    public Withdraw buildSenderWithdraw() {
-        return new Withdraw(getAmount());
-    }
-
-    public Deposit buildReceiverDeposit() {
-        return new Deposit(getAmount());
-    }
 
 }

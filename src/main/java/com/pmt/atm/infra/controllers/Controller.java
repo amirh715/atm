@@ -4,6 +4,7 @@ import com.pmt.atm.domain.*;
 import com.pmt.atm.domain.CreditCalculation.CustomerCreditCalculationPolicy;
 import com.pmt.atm.domain.exceptions.AccountDoesNotExistException;
 import com.pmt.atm.infra.DTOs.*;
+import com.pmt.atm.infra.exceptions.InterServiceCommunicationException;
 import com.pmt.atm.infra.persistence.repositories.AccountRepository;
 import com.pmt.atm.services.CustomerProxyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,18 +31,20 @@ public class Controller {
     @PostMapping("/open")
     public void openNewAccount(@RequestBody OpenNewAccountRequest request) {
 
-        final CustomerDetailsResponse customerDetails =
+        final CustomerDetails customerDetails =
                 customerProxyService.getCustomerDetailsById(request.getCustomerId());
 
         final Account account = new Account(request.getCustomerId());
 
-        final Toman initialDepositAmount =
-                request.getInitialDepositAmountInTomans() != null ?
-                        Toman.create(request.getInitialDepositAmountInTomans()) :
-                        Toman.createZero();
+        if(request.getInitialDepositAmountInTomans() != null) {
+            final Toman initialDepositAmount =
+                    request.getInitialDepositAmountInTomans() != null ?
+                            Toman.create(request.getInitialDepositAmountInTomans()) :
+                            Toman.createZero();
 
-        final Deposit aDeposit = new Deposit(initialDepositAmount);
-        account.deposit(aDeposit);
+            final Deposit aDeposit = new Deposit(initialDepositAmount);
+            account.deposit(aDeposit);
+        }
 
         accountRepository.save(account);
 
@@ -85,7 +88,7 @@ public class Controller {
 
         final AccountNumber senderAccountNumber = AccountNumber.create(request.getSenderAccountNumber());
         final AccountNumber receiverAccountNumber = AccountNumber.create(request.getReceiverAccountNumber());
-        final Toman transferAmount = Toman.create(request.getTransferAmount());
+        final Toman transferAmount = Toman.create(request.getAmountInTomans());
 
         final Account senderAccount = accountRepository.findAccountByAccountNumber(senderAccountNumber)
                 .orElseThrow(() -> new AccountDoesNotExistException("Sender account does not exist."));
@@ -94,11 +97,14 @@ public class Controller {
 
         final PayaTransfer payaTransfer = new PayaTransfer(receiverAccount, transferAmount);
 
-        senderAccount.makeTransfer(payaTransfer);
+        senderAccount.withdraw(payaTransfer);
 
         accountRepository.save(senderAccount);
 
-        receiverAccount.deposit(payaTransfer.buildReceiverDeposit());
+        // TODO: possible domain knowledge leak. refactor into a domain service.
+        receiverAccount.deposit(payaTransfer);
+        payaTransfer.markTransactionAsSucceeded();
+
         accountRepository.save(receiverAccount);
 
     }
@@ -117,11 +123,12 @@ public class Controller {
 
         final DirectTransfer directTransfer = new DirectTransfer(senderAccount, transferAmount);
 
-        senderAccount.makeTransfer(directTransfer);
+        senderAccount.withdraw(directTransfer);
 
         accountRepository.save(senderAccount);
 
-        receiverAccount.deposit(directTransfer.buildReceiverDeposit());
+        receiverAccount.deposit(directTransfer);
+        directTransfer.markTransactionAsSucceeded();
         accountRepository.save(receiverAccount);
 
     }
@@ -166,9 +173,12 @@ public class Controller {
     @GetMapping("/balanceOfAllAccountsOfCustomer")
     public int getTotalBalanceOfCustomersAccounts(@QueryParam("customerId") String customerId) {
 
-        return accountRepository.getTotalBalanceOfAllAccountsOfCustomer(customerId)
-                .getValue();
+        final Toman result =
+                accountRepository.getTotalBalanceOfAllAccountsOfCustomer(customerId);
+        // TODO: replace with appropriate exception
+        if(result == null) throw new InterServiceCommunicationException("Customer does not exist or has no accounts");
 
+        return result.getValue();
     }
 
     @GetMapping("/creditRate")

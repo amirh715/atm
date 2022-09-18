@@ -21,7 +21,7 @@ public interface AccountRepository extends CrudRepository<Account, String> {
             "AND tr.status = 0 ORDER BY tr.created_at DESC LIMIT 10", nativeQuery = true)
     Set<Transaction> getLastTenTransactionOfAccount(String accountId);
 
-    @Query(value = "SELECT SUM(ac.current_balance) FROM accounts ac WHERE ac.customer_id = ?1", nativeQuery = true)
+    @Query(value = "SELECT SUM(ac.current_balance_in_tomans) FROM accounts ac WHERE ac.customer_id = ?1", nativeQuery = true)
     Toman getTotalBalanceOfAllAccountsOfCustomer(String customerId);
 
     // TODO: MySQL datetime comparison
